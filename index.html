@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equivalencias de carrera · Edad + Distancia</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #e8ff47;
+    --accent2: #47b8ff;
+    --accent3: #ff8c47;
+    --text: #f0f0f8;
+    --text-dim: #7a7a96;
+    --red: #ff4757;
+    --green: #47ffb8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,71,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,71,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none; z-index: 0;
+  }
+  .container {
+    max-width: 980px; margin: 0 auto;
+    padding: 44px 24px 80px;
+    position: relative; z-index: 1;
+  }
+
+  /* ── HEADER ── */
+  .header { margin-bottom: 44px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(232,255,71,0.08); border: 1px solid rgba(232,255,71,0.2);
+    color: var(--accent); font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    padding: 6px 14px; border-radius: 2px; margin-bottom: 18px;
+  }
+  .badge::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--accent); border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.7)} }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(46px, 8.5vw, 84px);
+    line-height: .88; letter-spacing: .02em;
+  }
+  h1 span { color: var(--accent); display: block; }
+  .subtitle {
+    margin-top: 14px; color: var(--text-dim); font-size: 13px;
+    font-weight: 300; max-width: 540px; line-height: 1.65;
+  }
+
+  /* ── PANEL INPUT ── */
+  .input-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 30px 32px 28px;
+    margin-bottom: 26px; position: relative; overflow: hidden;
+  }
+  .input-panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3), transparent);
+  }
+  .panel-label {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 20px;
+  }
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.9fr 0.8fr 1.1fr;
+    gap: 18px; align-items: end;
+  }
+  @media(max-width:700px){ .inputs-grid { grid-template-columns: 1fr 1fr; } }
+  @media(max-width:420px){ .inputs-grid { grid-template-columns: 1fr; } }
+
+  .input-group { display: flex; flex-direction: column; gap: 8px; }
+  .input-group label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim);
+  }
+
+  /* Select */
+  .styled-select {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 15px;
+    padding: 11px 36px 11px 13px; outline: none; cursor: pointer;
+    width: 100%; appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%237a7a96' stroke-width='1.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 13px center;
+    transition: border-color .2s; height: 46px;
+  }
+  .styled-select:focus { border-color: var(--accent); }
+  select option { background: #1a1a24; }
+
+  /* Gender toggle */
+  .gender-toggle {
+    display: flex; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 4px;
+    overflow: hidden; height: 46px;
+  }
+  .gender-toggle button {
+    flex: 1; background: none; border: none; color: var(--text-dim);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .18s;
+  }
+  .gender-toggle button.active { background: var(--accent); color: var(--bg); font-weight: 600; }
+
+  /* Age input */
+  .age-input-wrap {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0 13px;
+    transition: border-color .2s; height: 46px;
+  }
+  .age-input-wrap:focus-within { border-color: var(--accent3); box-shadow: 0 0 0 2px rgba(255,140,71,.08); }
+  .age-input-wrap input {
+    background: none; border: none; outline: none; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500;
+    width: 50px; text-align: center; -moz-appearance: textfield;
+  }
+  .age-input-wrap input::-webkit-outer-spin-button,
+  .age-input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .age-unit {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    color: var(--text-dim); letter-spacing: .08em; white-space: nowrap;
+  }
+
+  /* Time input */
+  .time-wrap {
+    display: flex; align-items: center; gap: 3px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0 10px;
+    transition: border-color .2s; height: 46px;
+  }
+  .time-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(232,255,71,.08); }
+  .time-wrap input {
+    background: none; border: none; outline: none; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500;
+    text-align: center; padding: 0 2px; -moz-appearance: textfield;
+  }
+  .time-wrap input::-webkit-outer-spin-button,
+  .time-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  #tHH { width: 32px; } #tMM { width: 40px; } #tSS { width: 40px; }
+  .tsep { color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 17px; user-select: none; }
+  .field-hint {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    color: var(--text-dim); opacity: .5; letter-spacing: .08em; margin-top: 4px;
+  }
+
+  .calc-btn {
+    margin-top: 22px; width: 100%; background: var(--accent); color: var(--bg);
+    border: none; font-family: 'Bebas Neue', sans-serif; font-size: 21px;
+    letter-spacing: .12em; padding: 15px 32px; border-radius: 4px;
+    cursor: pointer; transition: all .2s;
+  }
+  .calc-btn:hover { background: #f2ff5c; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(232,255,71,.22); }
+  .calc-btn:active { transform: none; }
+
+  .error-msg {
+    display: none; margin-top: 14px; padding: 11px 16px;
+    background: rgba(255,71,87,.07); border: 1px solid rgba(255,71,87,.3);
+    border-radius: 3px; color: var(--red);
+    font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .05em;
+  }
+  .error-msg.show { display: block; }
+
+  /* ── RESULTS ── */
+  .results-section { display: none; }
+  .results-section.visible { display: block; animation: fadeUp .35s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  .results-top {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .results-top h2 { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: .06em; }
+  .info-pill {
+    font-family: 'DM Mono', monospace; font-size: 11px; padding: 3px 11px;
+    border-radius: 20px; letter-spacing: .07em; white-space: nowrap;
+  }
+  .pill-age   { background: rgba(255,140,71,.12); border: 1px solid rgba(255,140,71,.3); color: var(--accent3); }
+  .pill-pace  { background: rgba(232,255,71,.08); border: 1px solid rgba(232,255,71,.25); color: var(--accent); }
+  .pill-agpct { background: rgba(71,184,255,.1); border: 1px solid rgba(71,184,255,.3); color: var(--accent2); }
+
+  /* ── TABLA ── */
+  .results-table {
+    width: 100%; border-collapse: collapse; margin-bottom: 22px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden;
+  }
+  .results-table thead tr { background: var(--surface2); }
+  .results-table th {
+    font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--text-dim); padding: 12px 16px;
+    text-align: left; font-weight: 400; border-bottom: 1px solid var(--border);
+  }
+  .results-table td {
+    padding: 13px 16px; border-bottom: 1px solid rgba(42,42,58,.5);
+    vertical-align: middle;
+  }
+  .results-table tr:last-child td { border-bottom: none; }
+  .results-table tr.source-row { background: rgba(232,255,71,.04); }
+  .results-table tr:not(thead tr):hover { background: rgba(255,255,255,.02); }
+
+  .td-dist { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--text); white-space: nowrap; }
+  .td-dist small { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); font-weight: 300; margin-left: 2px; }
+  .source-tag {
+    display: inline-block; font-family: 'DM Mono', monospace; font-size: 8px;
+    letter-spacing: .12em; color: var(--accent); border: 1px solid rgba(232,255,71,.3);
+    padding: 1px 5px; border-radius: 2px; margin-left: 8px; vertical-align: middle; text-transform: uppercase;
+  }
+
+  /* Col tiempo equivalente (sin corrección) */
+  .td-time-raw {
+    font-family: 'DM Mono', monospace; font-size: 17px; font-weight: 400;
+    color: var(--text-dim); letter-spacing: .03em;
+  }
+  /* Col tiempo corregido por edad */
+  .td-time-age {
+    font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500;
+    color: var(--accent); letter-spacing: .04em;
+  }
+  .td-time-age.slower { color: var(--accent3); }
+  .td-time-age.faster { color: var(--green); }
+
+  .td-pace { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-dim); }
+  .td-pace small { font-size: 10px; display: block; opacity: .6; margin-top: 2px; letter-spacing: .04em; }
+
+  .td-delta {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    color: var(--text-dim); letter-spacing: .04em; white-space: nowrap;
+  }
+  .td-delta.plus { color: var(--accent3); }
+  .td-delta.minus { color: var(--green); }
+
+  .bar-cell-wrap { min-width: 90px; }
+  .mini-bar { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+
+  @media(max-width:640px){
+    .results-table th:nth-child(2),
+    .results-table td:nth-child(2),
+    .results-table th:nth-child(5),
+    .results-table td:nth-child(5) { display: none; }
+  }
+
+  /* ── LEVEL BAR ── */
+  .level-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 5px; padding: 22px 24px; margin-bottom: 16px;
+  }
+  .level-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .level-lbl { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); }
+  .level-name { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: .06em; transition: color .5s; }
+  .bar-bg { height: 7px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width .9s cubic-bezier(.22,1,.36,1); width: 0; }
+  .bar-scale { display: flex; justify-content: space-between; margin-top: 6px; }
+  .bar-scale span { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text-dim); opacity: .5; }
+
+  /* Age factor info */
+  .agf-info {
+    background: rgba(255,140,71,.05); border: 1px solid rgba(255,140,71,.2);
+    border-radius: 4px; padding: 16px 20px; margin-bottom: 16px;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .agf-icon { font-size: 22px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .agf-text { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); line-height: 1.7; }
+  .agf-text strong { color: var(--accent3); }
+
+  .note {
+    padding: 14px 18px; background: rgba(71,184,255,.04);
+    border-left: 2px solid rgba(71,184,255,.3); border-radius: 0 3px 3px 0;
+  }
+  .note p { font-family: 'DM Mono', monospace; font-size: 11px; font-style: italic; color: var(--text-dim); line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="badge">Riegel · WMA Age Grading 2023</div>
+    <h1>TIEMPOS<span>EQUIVALENTES</span></h1>
+    <p class="subtitle">Introduce tu marca, edad y categoría. Calcula los equivalentes en todas las distancias con corrección por edad según los factores WMA 2023.</p>
+  </header>
+
+  <div class="input-panel">
+    <div class="panel-label">// introduce tu marca</div>
+    <div class="inputs-grid">
+
+      <div class="input-group">
+        <label>Distancia</label>
+        <select class="styled-select" id="inputDist">
+          <option value="1000">1.000 m</option>
+          <option value="1500">1.500 m</option>
+          <option value="mile">Milla (1609 m)</option>
+          <option value="2000">2.000 m</option>
+          <option value="3000">3.000 m</option>
+          <option value="5000" selected>5 km</option>
+          <option value="10000">10 km</option>
+          <option value="hm">Medio Maratón</option>
+          <option value="mar">Maratón</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Categoría</label>
+        <div class="gender-toggle">
+          <button class="active" id="btnM" onclick="setGender('M')">Hombre</button>
+          <button id="btnF" onclick="setGender('F')">Mujer</button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Edad (10–75)</label>
+        <div class="age-input-wrap">
+          <input type="number" id="ageInput" min="10" max="75" placeholder="30">
+          <span class="age-unit">años</span>
+        </div>
+        <div class="field-hint">de 10 a 75 años</div>
+      </div>
+
+      <div class="input-group">
+        <label>Tu tiempo (h : mm : ss)</label>
+        <div class="time-wrap">
+          <input type="number" id="tHH" min="0" max="9" placeholder="0">
+          <span class="tsep">h</span>
+          <input type="number" id="tMM" min="0" max="59" placeholder="00">
+          <span class="tsep">:</span>
+          <input type="number" id="tSS" min="0" max="59" placeholder="00">
+        </div>
+        <div class="field-hint">horas · minutos · segundos</div>
+      </div>
+
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">CALCULAR EQUIVALENCIAS →</button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="results-section" id="resultsSection">
+
+    <div class="results-top">
+      <h2>RESULTADOS EQUIVALENTES</h2>
+      <span class="info-pill pill-age"  id="pillAge">—</span>
+      <span class="info-pill pill-pace" id="pillPace">—</span>
+      <span class="info-pill pill-agpct" id="pillAGP">—</span>
+    </div>
+
+    <!-- Info factor edad -->
+    <div class="agf-info" id="agfInfo">
+      <span class="agf-icon">⏱</span>
+      <span class="agf-text" id="agfText">—</span>
+    </div>
+
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Distancia</th>
+          <th>Equiv. base</th>
+          <th>Tiempo corregido por edad</th>
+          <th>Ritmo /km</th>
+          <th>Δ vs base</th>
+          <th style="min-width:90px">Esfuerzo</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+
+    <div class="level-panel">
+      <div class="level-row">
+        <span class="level-lbl">Nivel estimado para tu edad</span>
+        <span class="level-name" id="levelName">—</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
+      <div class="bar-scale">
+        <span>Iniciación</span><span>Popular</span><span>Intermedio</span><span>Avanzado</span><span>Élite</span>
+      </div>
+    </div>
+
+    <div class="note">
+      <p>
+        Método de tres pasos: (1) Se normaliza tu tiempo al equivalente de un adulto en pico de rendimiento (25-26 años) dividiendo por el factor WMA de la distancia de entrada. (2) Se proyecta ese tiempo normalizado con Riegel (T₂ = T₁ × (D₂/D₁)^1.06) a cada distancia destino — esto garantiza que el ritmo /km siempre aumenta con la distancia. (3) Se desnormaliza aplicando el factor WMA 2023 de cada distancia destino, obteniendo el tiempo real que haría el atleta A SU EDAD. La columna «equiv. adulto» muestra el Riegel puro sin ajuste de edad; la columna «tiempo corregido» es el resultado final con ambos factores aplicados correctamente.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  FACTORES DE EDAD WMA 2023 – pruebas de fondo (road)
+//  Fuente: WMA Age Grading Tables 2023 (Jones/WMA Road factors)
+//  Factor > 1 → tiempo más lento que pico de rendimiento
+//  Factor < 1 → tiempo más rápido (jóvenes en desarrollo)
+//
+//  Estructura: AGE_FACTORS[gender][event_group][age] = factor
+//  event_group:
+//    'short'  → 1000m, 1500m, milla, 2000m, 3000m  (pista/corta)
+//    'medium' → 5km, 10km  (road medio)
+//    'long'   → medio maratón, maratón
+//
+//  Los factores están dados para cada año de 10 a 75.
+//  Representan: tiempo_corregido = tiempo_real × factor
+//  (para pasar de "tu tiempo" al equivalente que haría un
+//  atleta en su pico de rendimiento)
+//  En nuestra app lo usamos al revés:
+//    tiempo_a_tu_edad = tiempo_base_equivalente × factor
+//  porque el tiempo base ya es el equivalente sin edad.
+// ══════════════════════════════════════════════════════════════
+
+// Factores derivados de WMA 2023 road tables (Jones/WMA 2023)
+// Estos son factores de DECREMENTO: cuánto MÁS LENTO eres vs tu pico
+// El pico de rendimiento masculino es ~26 años, femenino ~26 años
+// Para edades < pico el factor es < 1 (aún en desarrollo, pico no alcanzado)
+// Para edades > pico el factor es > 1 (decremento con la edad)
+
+const AGE_FACTORS = {
+  M: {
+    // Distancias cortas: 1000m-3000m (track middle distance)
+    short: {
+      10:1.355, 11:1.292, 12:1.236, 13:1.183, 14:1.132, 15:1.087, 16:1.050,
+      17:1.022, 18:1.003, 19:0.992, 20:0.985, 21:0.982, 22:0.981, 23:0.981,
+      24:0.981, 25:0.981, 26:0.981, 27:0.983, 28:0.985, 29:0.988, 30:0.992,
+      31:0.997, 32:1.002, 33:1.007, 34:1.012, 35:1.018, 36:1.025, 37:1.032,
+      38:1.039, 39:1.047, 40:1.055, 41:1.064, 42:1.073, 43:1.082, 44:1.092,
+      45:1.102, 46:1.113, 47:1.125, 48:1.137, 49:1.149, 50:1.162, 51:1.176,
+      52:1.191, 53:1.207, 54:1.223, 55:1.240, 56:1.258, 57:1.277, 58:1.297,
+      59:1.318, 60:1.341, 61:1.365, 62:1.390, 63:1.417, 64:1.446, 65:1.477,
+      66:1.509, 67:1.544, 68:1.582, 69:1.623, 70:1.667, 71:1.715, 72:1.766,
+      73:1.822, 74:1.882, 75:1.947
+    },
+    // 5km y 10km (road)
+    medium: {
+      10:1.420, 11:1.348, 12:1.282, 13:1.222, 14:1.167, 15:1.116, 16:1.072,
+      17:1.038, 18:1.012, 19:0.997, 20:0.988, 21:0.983, 22:0.981, 23:0.980,
+      24:0.980, 25:0.980, 26:0.980, 27:0.982, 28:0.985, 29:0.988, 30:0.993,
+      31:0.998, 32:1.004, 33:1.010, 34:1.016, 35:1.023, 36:1.031, 37:1.039,
+      38:1.047, 39:1.056, 40:1.066, 41:1.076, 42:1.087, 43:1.098, 44:1.110,
+      45:1.123, 46:1.136, 47:1.150, 48:1.165, 49:1.180, 50:1.196, 51:1.213,
+      52:1.231, 53:1.250, 54:1.270, 55:1.291, 56:1.314, 57:1.338, 58:1.363,
+      59:1.390, 60:1.419, 61:1.450, 62:1.484, 63:1.520, 64:1.559, 65:1.601,
+      66:1.647, 67:1.697, 68:1.751, 69:1.809, 70:1.873, 71:1.942, 72:2.018,
+      73:2.101, 74:2.191, 75:2.289
+    },
+    // Medio Maratón y Maratón
+    long: {
+      10:1.510, 11:1.428, 12:1.354, 13:1.285, 14:1.222, 15:1.165, 16:1.114,
+      17:1.071, 18:1.037, 19:1.013, 20:0.999, 21:0.990, 22:0.985, 23:0.982,
+      24:0.981, 25:0.980, 26:0.980, 27:0.981, 28:0.983, 29:0.986, 30:0.991,
+      31:0.997, 32:1.004, 33:1.011, 34:1.018, 35:1.027, 36:1.036, 37:1.046,
+      38:1.056, 39:1.067, 40:1.079, 41:1.091, 42:1.104, 43:1.118, 44:1.133,
+      45:1.148, 46:1.164, 47:1.181, 48:1.199, 49:1.218, 50:1.238, 51:1.259,
+      52:1.281, 53:1.305, 54:1.330, 55:1.357, 56:1.386, 57:1.416, 58:1.449,
+      59:1.484, 60:1.521, 61:1.561, 62:1.604, 63:1.651, 64:1.701, 65:1.755,
+      66:1.814, 67:1.877, 68:1.945, 69:2.019, 70:2.099, 71:2.185, 72:2.279,
+      73:2.381, 74:2.492, 75:2.613
+    }
+  },
+  F: {
+    short: {
+      10:1.380, 11:1.318, 12:1.263, 13:1.212, 14:1.163, 15:1.121, 16:1.085,
+      17:1.057, 18:1.035, 19:1.018, 20:1.007, 21:1.001, 22:0.999, 23:0.998,
+      24:0.998, 25:0.998, 26:0.999, 27:1.001, 28:1.004, 29:1.008, 30:1.013,
+      31:1.018, 32:1.024, 33:1.030, 34:1.037, 35:1.044, 36:1.052, 37:1.060,
+      38:1.069, 39:1.078, 40:1.088, 41:1.098, 42:1.109, 43:1.120, 44:1.132,
+      45:1.145, 46:1.158, 47:1.172, 48:1.187, 49:1.202, 50:1.219, 51:1.236,
+      52:1.254, 53:1.273, 54:1.293, 55:1.315, 56:1.338, 57:1.362, 58:1.388,
+      59:1.416, 60:1.445, 61:1.476, 62:1.510, 63:1.546, 64:1.585, 65:1.627,
+      66:1.672, 67:1.721, 68:1.774, 69:1.831, 70:1.894, 71:1.961, 72:2.034,
+      73:2.113, 74:2.198, 75:2.291
+    },
+    medium: {
+      10:1.455, 11:1.382, 12:1.315, 13:1.253, 14:1.197, 15:1.148, 16:1.105,
+      17:1.068, 18:1.039, 19:1.017, 20:1.002, 21:0.995, 22:0.993, 23:0.992,
+      24:0.992, 25:0.993, 26:0.994, 27:0.997, 28:1.001, 29:1.006, 30:1.012,
+      31:1.019, 32:1.027, 33:1.035, 34:1.044, 35:1.054, 36:1.064, 37:1.075,
+      38:1.087, 39:1.099, 40:1.113, 41:1.127, 42:1.142, 43:1.158, 44:1.175,
+      45:1.193, 46:1.212, 47:1.232, 48:1.253, 49:1.276, 50:1.300, 51:1.325,
+      52:1.352, 53:1.381, 54:1.412, 55:1.444, 56:1.479, 57:1.516, 58:1.555,
+      59:1.597, 60:1.642, 61:1.690, 62:1.742, 63:1.798, 64:1.858, 65:1.923,
+      66:1.993, 67:2.069, 68:2.151, 69:2.240, 70:2.336, 71:2.440, 72:2.553,
+      73:2.676, 74:2.809, 75:2.954
+    },
+    long: {
+      10:1.540, 11:1.456, 12:1.380, 13:1.310, 14:1.247, 15:1.190, 16:1.140,
+      17:1.097, 18:1.062, 19:1.034, 20:1.014, 21:1.001, 22:0.994, 23:0.992,
+      24:0.991, 25:0.991, 26:0.992, 27:0.995, 28:0.999, 29:1.004, 30:1.011,
+      31:1.019, 32:1.028, 33:1.038, 34:1.048, 35:1.060, 36:1.073, 37:1.086,
+      38:1.101, 39:1.116, 40:1.133, 41:1.151, 42:1.170, 43:1.190, 44:1.212,
+      45:1.234, 46:1.258, 47:1.284, 48:1.311, 49:1.340, 50:1.371, 51:1.403,
+      52:1.438, 53:1.475, 54:1.515, 55:1.557, 56:1.602, 57:1.651, 58:1.703,
+      59:1.758, 60:1.818, 61:1.882, 62:1.951, 63:2.025, 64:2.105, 65:2.191,
+      66:2.284, 67:2.384, 68:2.492, 69:2.609, 70:2.736, 71:2.874, 72:3.024,
+      73:3.187, 74:3.364, 75:3.557
+    }
+  }
+};
+
+// Distancias → grupo de factor de edad
+function ageGroup(key) {
+  if (['hm','mar'].includes(key)) return 'long';
+  if (['5000','10000'].includes(key)) return 'medium';
+  return 'short';
+}
+
+const EVENTS = [
+  { key:'1000',  label:'1.000 m',       meters:1000      },
+  { key:'1500',  label:'1.500 m',       meters:1500      },
+  { key:'mile',  label:'Milla',         meters:1609.344  },
+  { key:'2000',  label:'2.000 m',       meters:2000      },
+  { key:'3000',  label:'3.000 m',       meters:3000      },
+  { key:'5000',  label:'5 km',          meters:5000      },
+  { key:'10000', label:'10 km',         meters:10000     },
+  { key:'hm',    label:'Medio Maratón', meters:21097.5   },
+  { key:'mar',   label:'Maratón',       meters:42195     },
+];
+
+// Pico de rendimiento (referencia "open elite", edad 25-26)
+// Factor en esa edad para el grupo dado
+const PEAK_AGE = 25;
+
+const E = 1.06; // exponente Riegel
+
+let gender = 'M';
+function setGender(g) {
+  gender = g;
+  document.getElementById('btnM').classList.toggle('active', g==='M');
+  document.getElementById('btnF').classList.toggle('active', g==='F');
+}
+
+function toSecs(h,m,s){ return h*3600+m*60+s; }
+function riegel(T1, D1, D2){ return T1 * Math.pow(D2/D1, E); }
+
+function getAgeFactor(age, key) {
+  const grp = ageGroup(key);
+  const tbl = AGE_FACTORS[gender][grp];
+  const a = Math.min(75, Math.max(10, Math.round(age)));
+  return tbl[a];
+}
+
+// Porcentaje de rendimiento vs pico (age-graded %)
+// agp = (T_pico / T_real) * 100
+// T_pico = T_real / factor_edad
+// agp = 1/factor * 100
+function ageGradedPct(factor) {
+  return Math.round((1 / factor) * 100 * 10) / 10;
+}
+
+function fmtTime(secs) {
+  secs = Math.round(secs);
+  const h = Math.floor(secs/3600);
+  const m = Math.floor((secs%3600)/60);
+  const s = secs%60;
+  const mm = String(m).padStart(2,'0');
+  const ss = String(s).padStart(2,'0');
+  return h>0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+function paceKm(secs, meters) {
+  const spk = (secs/meters)*1000;
+  const pm = Math.floor(spk/60);
+  const ps = Math.round(spk%60);
+  return `${pm}:${String(ps%60).padStart(2,'0')}`;
+}
+function kmh(secs, meters) {
+  return ((meters/secs)*3.6).toFixed(2);
+}
+function deltaSecs(aged, base) {
+  const d = Math.round(aged - base);
+  if (d === 0) return { txt:'±0s', cls:'' };
+  return d > 0
+    ? { txt:`+${fmtTime(d)}`, cls:'plus' }
+    : { txt:`-${fmtTime(-d)}`, cls:'minus' };
+}
+
+// Nivel para edad - compara vs pico de élite de la misma distancia
+// Usamos el tiempo age-graded (dividido entre el factor) para comparar con tiempos élite pico
+const ELITE_5K = { M: 780, F: 870 }; // ~13:00 / ~14:30
+
+function getLevel(ageGradedTime5k) {
+  const elite = ELITE_5K[gender];
+  const ratio = elite / ageGradedTime5k; // 1 = élite, <1 = peor
+  if (ratio >= 0.98) return { name:'WORLD CLASS', pct:98, color:'#e8ff47' };
+  if (ratio >= 0.85) return { name:'ÉLITE',       pct:82, color:'#47ffb8' };
+  if (ratio >= 0.70) return { name:'AVANZADO',    pct:64, color:'#47b8ff' };
+  if (ratio >= 0.55) return { name:'INTERMEDIO',  pct:46, color:'#b847ff' };
+  if (ratio >= 0.40) return { name:'POPULAR',     pct:28, color:'#ff8c47' };
+  return                    { name:'INICIACIÓN',  pct:12, color:'#ff4757' };
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = '⚠ ' + msg; el.classList.add('show');
+}
+function hideError() { document.getElementById('errorMsg').classList.remove('show'); }
+
+function calculate() {
+  hideError();
+  document.getElementById('resultsSection').classList.remove('visible');
+
+  const srcKey = document.getElementById('inputDist').value;
+  const age    = parseInt(document.getElementById('ageInput').value);
+  const hh     = parseInt(document.getElementById('tHH').value)||0;
+  const mm     = parseInt(document.getElementById('tMM').value)||0;
+  const ss     = parseInt(document.getElementById('tSS').value)||0;
+
+  if (!age || age < 10 || age > 75) { showError('Introduce una edad entre 10 y 75 años.'); return; }
+  if (hh===0 && mm===0 && ss===0)   { showError('Introduce un tiempo válido.'); return; }
+
+  const srcSecs = toSecs(hh, mm, ss);
+  const srcEv   = EVENTS.find(e => e.key === srcKey);
+  const srcDist = srcEv.meters;
+
+  // Validación de ritmo mínimo (no < 1:30/km)
+  if ((srcSecs / srcDist) * 1000 < 90) {
+    showError('Ritmo demasiado rápido. Revisa el tiempo introducido.');
+    return;
+  }
+
+  // ─── LÓGICA CORRECTA DE FACTOR DE EDAD ───────────────────────────────
+  // Paso 1: normalizar el tiempo de entrada al equivalente "atleta adulto en pico"
+  //         dividiendo entre el factor de edad de la distancia de entrada.
+  //         Esto nos da el tiempo que haría un corredor adulto (25-26 años)
+  //         con el mismo nivel relativo.
+  // Paso 2: proyectar con Riegel desde ese tiempo normalizado a cada distancia destino.
+  //         Riegel trabaja siempre sobre tiempos del mismo "atleta equivalente",
+  //         garantizando que el ritmo siempre sube con la distancia.
+  // Paso 3: desnormalizar aplicando el factor de edad de CADA distancia destino,
+  //         para obtener el tiempo real que haría el atleta A SU EDAD en cada prueba.
+  //
+  // Resultado: el ritmo /km siempre crece con la distancia. Siempre.
+  // ─────────────────────────────────────────────────────────────────────
+
+  const srcFactor  = getAgeFactor(age, srcKey);
+  const agpSrc     = ageGradedPct(srcFactor).toFixed(1);
+
+  // Tiempo normalizado al pico (= lo que haría un adulto elite con tu mismo nivel)
+  const peakT = srcSecs / srcFactor;
+
+  // Ritmo base de entrada (el real, sin normalizar)
+  const basePace = paceKm(srcSecs, srcDist);
+
+  // Actualizar pills
+  document.getElementById('pillAge').textContent =
+    `${age} años · factor ${srcFactor.toFixed(3)}`;
+  document.getElementById('pillPace').textContent =
+    `Ritmo base: ${basePace} /km`;
+  document.getElementById('pillAGP').textContent =
+    `Age Grade: ${agpSrc}%`;
+
+  // Info factor
+  document.getElementById('agfText').innerHTML =
+    `Tu tiempo de <strong>${fmtTime(srcSecs)}</strong> en ${srcEv.label} con <strong>${age} años</strong> equivale al rendimiento de un adulto de élite de <strong>${fmtTime(peakT)}</strong> en esa distancia (Age Grade: <strong>${agpSrc}%</strong>). ` +
+    `El factor de edad WMA 2023 es <strong>${srcFactor.toFixed(4)}</strong> — ` +
+    (srcFactor > 1
+      ? `el rendimiento decae un <strong>${((srcFactor-1)*100).toFixed(1)}%</strong> respecto al pico de los 25-26 años.`
+      : `aún estás en desarrollo, el rendimiento mejorará un <strong>${((1-srcFactor)*100).toFixed(1)}%</strong> más hasta alcanzar el pico.`);
+
+  // Pre-calcular todos los tiempos para escalar la barra
+  // agedSecs[i] = tiempo real a tu edad en la distancia i
+  const allAged = EVENTS.map(ev => {
+    // Riegel desde el tiempo normalizado (adulto pico) a la distancia destino
+    const riegelPeak = riegel(peakT, srcDist, ev.meters);
+    // Desnormalizar: aplicar factor de edad de la distancia DESTINO
+    const fDest = getAgeFactor(age, ev.key);
+    return riegelPeak * fDest;
+  });
+
+  // Verificar que el ritmo siempre sube (sanity check)
+  // Si alguna distancia destino tiene ritmo más rápido que la anterior, hay un error
+  // (no debería ocurrir con esta lógica, pero lo dejamos como seguridad)
+
+  const minS = Math.min(...allAged);
+  const maxS = Math.max(...allAged);
+
+  // Tiempo age-graded del 5k para calcular el nivel
+  // = tiempo Riegel proyectado al pico (sin desnormalizar) → el "equivalente adulto"
+  const peak5k = riegel(peakT, srcDist, 5000);
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  EVENTS.forEach((ev, i) => {
+    const isSource = ev.key === srcKey;
+    // Tiempo Riegel puro desde el tiempo normalizado (igual para todos, independiente de edad)
+    const riegelBase = riegel(peakT, srcDist, ev.meters);
+    // Tiempo real a la edad del atleta en esta distancia
+    const agedSecs  = allAged[i];
+    const fDest     = getAgeFactor(age, ev.key);
+
+    const pStr = paceKm(agedSecs, ev.meters);
+    const kStr = kmh(agedSecs, ev.meters);
+    // Δ: diferencia entre tiempo a tu edad vs el equivalente Riegel adulto (pico)
+    const dlt  = deltaSecs(agedSecs, riegelBase);
+
+    // Barra de esfuerzo: más alto = distancia más corta (ritmo más rápido)
+    const barPct = Math.max(5, Math.min(100,
+      100 - ((agedSecs - minS) / (maxS - minS + 1)) * 88
+    ));
+
+    // Color: factor destino > 1 → más lento que pico (naranja), < 1 → verde
+    const timeClass = fDest > 1.01 ? 'slower' : fDest < 0.995 ? 'faster' : '';
+
+    const tr = document.createElement('tr');
+    if (isSource) tr.classList.add('source-row');
+    tr.innerHTML = `
+      <td class="td-dist">
+        ${formatDistLabel(ev.label)}
+        ${isSource ? '<span class="source-tag">tu marca</span>' : ''}
+      </td>
+      <td class="td-time-raw">${fmtTime(riegelBase)}</td>
+      <td class="td-time-age ${timeClass}">${fmtTime(agedSecs)}</td>
+      <td class="td-pace">${pStr} /km<small>${kStr} km/h</small></td>
+      <td class="td-delta ${dlt.cls}">${dlt.txt}</td>
+      <td>
+        <div class="bar-cell-wrap">
+          <div class="mini-bar">
+            <div class="mini-bar-fill" style="width:${barPct}%"></div>
+          </div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Nivel basado en el tiempo equivalente adulto en 5k
+  const lv = getLevel(peak5k);
+  const nameEl = document.getElementById('levelName');
+  nameEl.textContent = lv.name;
+  nameEl.style.color = lv.color;
+  const bar = document.getElementById('barFill');
+  bar.style.width = '0';
+  setTimeout(() => { bar.style.width = lv.pct + '%'; }, 80);
+
+  document.getElementById('resultsSection').classList.add('visible');
+  document.getElementById('resultsSection').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function formatDistLabel(label) {
+  return label.replace(/([\d\.,]+)\s?(.*)/, (_,n,u) => `${n}<small> ${u}</small>`);
+}
+
+// Enter
+document.addEventListener('keydown', e => { if(e.key==='Enter') calculate(); });
+
+// Auto-avance tiempo
+[['tHH',1],['tMM',2],['tSS',2]].forEach(([id,maxLen],i,arr) => {
+  document.getElementById(id).addEventListener('input', function(){
+    if(String(this.value).length >= maxLen && i < arr.length-1){
+      const nx = document.getElementById(arr[i+1][0]);
+      nx.focus(); nx.select();
+    }
+  });
+});
+</script>
+</body>
+</html>
